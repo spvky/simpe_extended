@@ -27,7 +27,7 @@ load_sprite_atlas_from_file :: (filename: string, rows: int, columns: int) -> Sp
     return atlas;
 }
 
-make_sprite :: (texture: *Texture, uvs: [4]Vector2 = Vector2.[.{0, 1}, .{0, 0}, .{1, 0}, .{1, 1}]) -> Sprite {
+make_sprite :: (texture: *Texture, uvs: [4]Vector2 = Vector2.[.{0, 0}, .{1, 0}, .{1, 1}, .{0, 1}]) -> Sprite {
     sprite: Sprite;
     sprite.texture = texture;
     sprite.uvs = uvs;
@@ -66,10 +66,10 @@ render_sprite :: (s: Sprite, position: Vector2, size: Vector2, pivot: Vector2 = 
 
     origin := position + (pivot * size);
 
-    p[0] = .{-size.x / 2, size.y / 2};
-    p[1] = .{-size.x / 2, -size.y / 2};
-    p[2] = .{size.x / 2, -size.y / 2};
-    p[3] = .{size.x / 2, size.y / 2};
+    p[0] = .{-size.x / 2, -size.y / 2};
+    p[1] = .{size.x / 2, -size.y / 2};
+    p[2] = .{size.x / 2, size.y / 2};
+    p[3] = .{-size.x / 2, size.y / 2};
 
     // Rotation is still a little funky revist when needed, it works fine for origin 0
     for 0..3 {
