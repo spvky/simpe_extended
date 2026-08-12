@@ -60,7 +60,7 @@ load_texture_from_file :: (name: string) -> Texture, bool {
     return result, success;
 }
 
-render_sprite :: (s: Sprite, position: Vector2, size: Vector2, pivot: Vector2 = .{0.0, 0.0}, rotation: float32 = 0, color: Vector4 = .{1, 1, 1, 1}) {
+render_sprite :: (s: *Sprite, position: Vector2, size: Vector2, pivot: Vector2 = .{0.0, 0.0}, rotation: float32 = 0, color: Vector4 = .{1, 1, 1, 1}) {
     set_shader_for_images(s.texture);
     p: [4]Vector2;
 
