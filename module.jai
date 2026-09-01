@@ -12,6 +12,36 @@ Sprite_Atlas :: struct {
     total: int;
 }
 
+Sprite_Animation_Player :: struct {
+    atlas: *Sprite_Atlas;
+    seconds_per_frame: float32;
+    frametime: float32;
+    start: int;
+    length: int;
+    idx: int;
+}
+
+advance_animation_player :: (spa: *Sprite_Animation_Player, delta: float32) {
+    spa.frametime += delta;
+    if spa.frametime > spa.seconds_per_frame {
+        spa.frametime = 0.0;
+        advance_animation_frame(spa);
+    }
+}
+
+advance_animation_frame :: inline (spa: *Sprite_Animation_Player) {
+    new_idx := spa.idx + 1;
+    if new_idx > spa.start + spa.length {
+        spa.idx = spa.start;
+    } else {
+        spa.idx = new_idx;
+    }
+}
+
+get_current_animation_frame :: (spa: *Sprite_Animation_Player) -> Sprite {
+    return sprite_from_atlas(spa.atlas, spa.idx);
+}
+
 load_sprite_atlas_from_file :: (filename: string, rows: int, columns: int) -> Sprite_Atlas {
     assert(rows != 0 || columns != 0, "Atlas cannot have 0 rows or columns!\n");
 
