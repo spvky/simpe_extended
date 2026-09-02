@@ -23,7 +23,7 @@ Sprite_Animation_Player :: struct {
 
 advance_animation_player :: (spa: *Sprite_Animation_Player, delta: float32) {
     spa.frametime += delta;
-    if spa.frametime > spa.seconds_per_frame {
+    if spa.frametime >= spa.seconds_per_frame {
         spa.frametime = 0.0;
         advance_animation_frame(spa);
     }
