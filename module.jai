@@ -21,6 +21,13 @@ Sprite_Animation_Player :: struct {
     idx: int;
 }
 
+Sprite_Sheet :: struct {
+    atlas: *Sprite_Atlas;
+    start: int;
+    length: int;
+    idx: int;
+}
+
 advance_animation_player :: (spa: *Sprite_Animation_Player, delta: float32) {
     spa.frametime += delta;
     if spa.frametime >= spa.seconds_per_frame {
@@ -36,6 +43,10 @@ advance_animation_frame :: inline (spa: *Sprite_Animation_Player) {
     } else {
         spa.idx = new_idx;
     }
+}
+
+get_current_sprite_sheet_frame :: (sp: *Sprite_Sheet) -> Sprite {
+    return sprite_from_atlas(sp.atlas, sp.idx);
 }
 
 get_current_animation_frame :: (spa: *Sprite_Animation_Player) -> Sprite {
@@ -64,7 +75,7 @@ make_sprite :: (texture: *Texture, uvs: [4]Vector2 = Vector2.[.{0, 0}, .{1, 0}, 
     return sprite;
 }
 
-sprite_from_atlas :: (a: *Sprite_Atlas, idx: int) -> Sprite {
+sprite_from_atlas :: (a: *Sprite_Atlas, idx: int) -> Sprite #expand {
     xu: float32 = 1.0 / xx a.columns;
     yu: float32 = 1.0 / xx a.rows;
     top: float32 = ifx idx == 0 then 1 else 1.0 - (cast(float32)(idx / a.columns)) * yu;
@@ -75,10 +86,10 @@ sprite_from_atlas :: (a: *Sprite_Atlas, idx: int) -> Sprite {
     sprite: Sprite;
     sprite.texture = *a.texture;
     sprite.uvs = Vector2.[
-                          .{left, top},
                           .{left, bot},
                           .{right, bot},
-                          .{right, top}];
+                          .{right, top},
+                          .{left, top}];
 
     return sprite;
 }
