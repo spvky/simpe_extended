@@ -125,6 +125,13 @@ render_sprite :: (s: *Sprite, position: Vector2, size: Vector2, pivot: Vector2 =
                    s.uvs[0], s.uvs[1], s.uvs[2], s.uvs[3]);
 }
 
+render_sprite_to_quad :: (s: *Sprite, vertices: [4]Vector2, color: Vector4 = .{1, 1, 1, 1}) {
+    set_shader_for_images(s.texture);
+    immediate_quad(vertices[0], vertices[1], vertices[2], vertices[3],
+                   color,
+                   s.uvs[0], s.uvs[1], s.uvs[2], s.uvs[3]);
+}
+
 #import "Simp";
 #import "Basic";
 #import "Math";
