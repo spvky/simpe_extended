@@ -16,9 +16,14 @@ Sprite_Animation_Player :: struct {
     atlas: *Sprite_Atlas;
     seconds_per_frame: float32;
     frametime: float32;
-    start: int;
-    length: int;
     idx: int;
+    current_animation: Sprite_Animation;
+}
+
+Sprite_Animation :: struct {
+    start: int;
+    end: int;
+    next_anim: *Sprite_Animation;
 }
 
 Sprite_Sheet :: struct {
@@ -26,6 +31,18 @@ Sprite_Sheet :: struct {
     start: int;
     length: int;
     idx: int;
+}
+
+N_Patch :: struct {
+    top_left: Sprite;
+    top: Sprite;
+    top_right: Sprite;
+    right: Sprite;
+    bot_right: Sprite;
+    bot: Sprite;
+    bot_left: Sprite;
+    left: Sprite;
+    center: Sprite;
 }
 
 advance_animation_player :: (spa: *Sprite_Animation_Player, delta: float32) {
@@ -36,26 +53,30 @@ advance_animation_player :: (spa: *Sprite_Animation_Player, delta: float32) {
     }
 }
 
-advance_animation_frame :: inline (spa: *Sprite_Animation_Player) {
+advance_animation_frame :: (spa: *Sprite_Animation_Player) #expand {
     new_idx := spa.idx + 1;
-    if new_idx > spa.start + spa.length {
-        spa.idx = spa.start;
+    if new_idx > spa.current_animation.end {
+        if spa.current_animation.next_anim {
+            spa.current_animation = spa.current_animation.next_anim.*;
+            spa.idx = spa.current_animation.start;
+        } else {
+            spa.idx = spa.current_animation.start;
+        }
     } else {
         spa.idx = new_idx;
     }
 }
 
-get_current_sprite_sheet_frame :: (sp: *Sprite_Sheet) -> Sprite {
-    return sprite_from_atlas(sp.atlas, sp.idx);
+get_current_sprite_sheet_frame :: (sp: *Sprite_Sheet, flip := false) -> Sprite {
+    return sprite_from_atlas(sp.atlas, sp.idx, flip);
 }
 
-get_current_animation_frame :: (spa: *Sprite_Animation_Player) -> Sprite {
-    return sprite_from_atlas(spa.atlas, spa.idx);
+get_current_animation_frame :: (spa: *Sprite_Animation_Player, flip := false) -> Sprite {
+    return sprite_from_atlas(spa.atlas, spa.idx, flip);
 }
 
 load_sprite_atlas_from_file :: (filename: string, rows: int, columns: int) -> Sprite_Atlas {
     assert(rows != 0 || columns != 0, "Atlas cannot have 0 rows or columns!\n");
-
     atlas: Sprite_Atlas;
     texture, ok := load_texture_from_file(filename);
     assert(ok, "failed to load texture for atlas!");
@@ -75,7 +96,7 @@ make_sprite :: (texture: *Texture, uvs: [4]Vector2 = Vector2.[.{0, 0}, .{1, 0}, 
     return sprite;
 }
 
-sprite_from_atlas :: (a: *Sprite_Atlas, idx: int) -> Sprite #expand {
+sprite_from_atlas :: (a: *Sprite_Atlas, idx: int, flip := false) -> Sprite #expand {
     xu: float32 = 1.0 / xx a.columns;
     yu: float32 = 1.0 / xx a.rows;
     top: float32 = ifx idx == 0 then 1 else 1.0 - (cast(float32)(idx / a.columns)) * yu;
@@ -85,11 +106,19 @@ sprite_from_atlas :: (a: *Sprite_Atlas, idx: int) -> Sprite #expand {
 
     sprite: Sprite;
     sprite.texture = *a.texture;
-    sprite.uvs = Vector2.[
-                          .{left, bot},
-                          .{right, bot},
-                          .{right, top},
-                          .{left, top}];
+    if flip {
+        sprite.uvs = Vector2.[
+                              .{right, bot},
+                              .{left, bot},
+                              .{left, top},
+                              .{right, top}];
+    } else {
+        sprite.uvs = Vector2.[
+                              .{left, bot},
+                              .{right, bot},
+                              .{right, top},
+                              .{left, top}];
+    }
 
     return sprite;
 }
