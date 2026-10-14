@@ -70,6 +70,10 @@ get_current_animation_frame :: (spa: *Sprite_Animation_Player, flip := false) ->
     return sprite_from_atlas(spa.atlas, spa.idx, flip);
 }
 
+get_current_animation_frame_quad :: (spa: *Sprite_Animation_Player, flip := false) -> UV_Quad {
+    return uv_quad_from_atlas(spa.atlas, spa.idx, flip);
+}
+
 load_sprite_atlas_from_file :: (filename: string, rows: int, columns: int) -> Sprite_Atlas {
     assert(rows != 0 || columns != 0, "Atlas cannot have 0 rows or columns!\n");
     atlas: Sprite_Atlas;
@@ -91,7 +95,7 @@ make_sprite :: (texture: *Texture, uvs: [4]Vector2 = Vector2.[.{0, 0}, .{1, 0}, 
     return sprite;
 }
 
-uv_quad_from_atlas :: (atlas: *Sprite_Atlas, idx: int, flip := false) -> UV_Quad {
+uv_quad_from_atlas :: (a: *Sprite_Atlas, idx: int, flip := false) -> UV_Quad {
     xu: float32 = 1.0 / xx a.columns;
     yu: float32 = 1.0 / xx a.rows;
     top: float32 = ifx idx == 0 then 1 else 1.0 - (cast(float32)(idx / a.columns)) * yu;
