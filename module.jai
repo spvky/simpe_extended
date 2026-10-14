@@ -2,8 +2,10 @@
 
 Sprite :: struct {
     texture: *Texture;
-    uvs: [4]Vector2;
+    uvs: UV_Quad;
 }
+
+UV_Quad :: [4]Vector2;
 
 Sprite_Atlas :: struct {
     texture: Texture;
@@ -17,13 +19,14 @@ Sprite_Animation_Player :: struct {
     seconds_per_frame: float32;
     frametime: float32;
     idx: int;
-    current_animation: Sprite_Animation;
+    current_animation: *Sprite_Animation;
 }
 
 Sprite_Animation :: struct {
     start: int;
     end: int;
     next_anim: *Sprite_Animation;
+    transition_proc: #type ();
 }
 
 Sprite_Sheet :: struct {
@@ -31,18 +34,6 @@ Sprite_Sheet :: struct {
     start: int;
     length: int;
     idx: int;
-}
-
-N_Patch :: struct {
-    top_left: Sprite;
-    top: Sprite;
-    top_right: Sprite;
-    right: Sprite;
-    bot_right: Sprite;
-    bot: Sprite;
-    bot_left: Sprite;
-    left: Sprite;
-    center: Sprite;
 }
 
 advance_animation_player :: (spa: *Sprite_Animation_Player, delta: float32) {
@@ -56,11 +47,15 @@ advance_animation_player :: (spa: *Sprite_Animation_Player, delta: float32) {
 advance_animation_frame :: (spa: *Sprite_Animation_Player) #expand {
     new_idx := spa.idx + 1;
     if new_idx > spa.current_animation.end {
+        transition_proc := spa.current_animation.transition_proc;
         if spa.current_animation.next_anim {
-            spa.current_animation = spa.current_animation.next_anim.*;
+            spa.current_animation = spa.current_animation.next_anim;
             spa.idx = spa.current_animation.start;
         } else {
             spa.idx = spa.current_animation.start;
+        }
+        if transition_proc {
+            transition_proc();
         }
     } else {
         spa.idx = new_idx;
@@ -94,6 +89,32 @@ make_sprite :: (texture: *Texture, uvs: [4]Vector2 = Vector2.[.{0, 0}, .{1, 0}, 
     sprite.texture = texture;
     sprite.uvs = uvs;
     return sprite;
+}
+
+uv_quad_from_atlas :: (atlas: *Sprite_Atlas, idx: int, flip := false) -> UV_Quad {
+    xu: float32 = 1.0 / xx a.columns;
+    yu: float32 = 1.0 / xx a.rows;
+    top: float32 = ifx idx == 0 then 1 else 1.0 - (cast(float32)(idx / a.columns)) * yu;
+    left: float32 = ifx idx == 0 then 0 else xx (idx % a.columns) * xu;
+    bot := top - yu;
+    right := left + xu;
+
+    quad: UV_Quad;
+    if flip {
+        quad = Vector2.[
+                        .{right, bot},
+                        .{left, bot},
+                        .{left, top},
+                        .{right, top}];
+    } else {
+        quad = Vector2.[
+                        .{left, bot},
+                        .{right, bot},
+                        .{right, top},
+                        .{left, top}];
+    }
+
+    return quad;
 }
 
 sprite_from_atlas :: (a: *Sprite_Atlas, idx: int, flip := false) -> Sprite #expand {
